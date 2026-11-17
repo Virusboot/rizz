@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "837305453018",
+    "project_id": "rizz-4d335",
+    "storage_bucket": "rizz-4d335.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:837305453018:android:6a877fe21bbfddfb1958e3",
+        "android_client_info": {
+          "package_name": "com.kvstudio.rizz"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSN3RMnB-B0SDnYdlrGbM3r0HZofaDqzw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
