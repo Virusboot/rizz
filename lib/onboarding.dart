@@ -48,10 +48,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         if (city.text.trim().length < 2) return 'Enter your city.';
         return null;
       case 2:
-        if (photos.length < 2) return 'Add at least 2 photos.';
         return null;
       default:
-        if (prompts.length < 2) return 'Answer at least 2 prompts.';
         return null;
     }
   }
@@ -68,6 +66,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
     setState(() => saving = true);
     try {
+      final finalPhotos = photos.isNotEmpty
+          ? photos
+          : [
+              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80',
+            ];
+      final finalPrompts = prompts.length >= 2
+          ? prompts
+          : [
+              Prompt('A random fact I love', 'Coffee was discovered by goats'),
+              Prompt('Typical Sunday', 'Chilling and listening to music'),
+            ];
+
       await Backend.createProfile(
         name: name.text,
         dob: dob!,
@@ -75,8 +86,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         interestedIn: interested!,
         intent: intent!,
         city: city.text,
-        prompts: prompts,
-        photos: photos,
+        prompts: finalPrompts,
+        photos: finalPhotos,
       );
       // AuthGate switches to the app automatically.
     } catch (e) {
@@ -214,10 +225,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _step2() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      _title('Add your photos', 'At least 2. Clear, recent photos of you get the most likes.'),
+      _title('Add your photos',
+          'Optional for now. You can continue without photos or tap below for demo photos.'),
       PhotoGrid(
         photos: photos,
         onChanged: (l) => setState(() => photos = l),
+      ),
+      const SizedBox(height: 8),
+      TextButton.icon(
+        icon: const Icon(Icons.auto_awesome, color: kBrand, size: 18),
+        label: const Text('Add demo photos', style: TextStyle(color: kBrand)),
+        onPressed: () => setState(() => photos = [
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80',
+        ]),
       ),
       const Padding(
         padding: EdgeInsets.only(top: 10),

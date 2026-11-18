@@ -140,6 +140,12 @@ class Backend {
   }) async {
     final age = ageFrom(dob);
     if (age < 18) throw Exception('You must be 18 or older to use Rizz.');
+    final safePhotos = photos.isNotEmpty
+        ? photos
+        : [
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80',
+          ];
     final batch = db.batch();
     batch.set(userRef(uid), {
       'name': name.trim(),
@@ -149,7 +155,7 @@ class Backend {
       'intent': intent.name,
       'city': city.trim(),
       'prompts': prompts.map((p) => p.toMap()).toList(),
-      'photos': photos,
+      'photos': safePhotos,
       'verified': false,
       'verifyPending': false,
       'paused': false,
