@@ -31,7 +31,7 @@ class RizzApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Rizz',
+      title: 'Hookin',
       debugShowCheckedModeBanner: false,
       navigatorKey: Notifications.navKey,
       scaffoldMessengerKey: Notifications.messengerKey,

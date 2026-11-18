@@ -411,7 +411,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         tabs: const [
           Tab(text: 'Get more'),
           Tab(text: 'Safety'),
-          Tab(text: 'My Rizz'),
+          Tab(text: 'My Hookin'),
         ],
       ),
       Expanded(

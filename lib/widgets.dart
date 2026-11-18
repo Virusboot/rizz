@@ -42,50 +42,100 @@ Future<bool> confirmDialog(
 
 // -------------------------------------------------------------------- logo
 
-class RizzLogoPainter extends CustomPainter {
-  final Color color;
-  RizzLogoPainter(this.color);
+class HookinLogoPainter extends CustomPainter {
+  final Color primaryColor;
+  final Color secondaryColor;
+
+  HookinLogoPainter({
+    this.primaryColor = kBrand,
+    this.secondaryColor = kBrandOrange,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..color = color
+    final w = size.width;
+    final h = size.height;
+
+    final rect = Offset.zero & size;
+    final gradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [primaryColor, secondaryColor],
+    );
+
+    final paint = Paint()
+      ..shader = gradient.createShader(rect)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * 0.11
-      ..strokeCap = StrokeCap.round;
-    final r = size.width * 0.28;
-    canvas.drawCircle(Offset(size.width * 0.38, size.height * 0.5), r, p);
-    canvas.drawCircle(Offset(size.width * 0.62, size.height * 0.5), r, p);
+      ..strokeWidth = w * 0.13
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    // Left hook
+    final leftHook = Path();
+    leftHook.moveTo(w * 0.44, h * 0.38);
+    leftHook.cubicTo(w * 0.44, h * 0.22, w * 0.36, h * 0.12, w * 0.24, h * 0.12);
+    leftHook.cubicTo(w * 0.08, h * 0.12, w * 0.05, h * 0.36, w * 0.18, h * 0.54);
+    leftHook.cubicTo(w * 0.28, h * 0.68, w * 0.42, h * 0.80, w * 0.50, h * 0.88);
+    canvas.drawPath(leftHook, paint);
+
+    // Right hook interlocking
+    final rightHook = Path();
+    rightHook.moveTo(w * 0.56, h * 0.38);
+    rightHook.cubicTo(w * 0.56, h * 0.22, w * 0.64, h * 0.12, w * 0.76, h * 0.12);
+    rightHook.cubicTo(w * 0.92, h * 0.12, w * 0.95, h * 0.36, w * 0.82, h * 0.54);
+    rightHook.cubicTo(w * 0.72, h * 0.68, w * 0.58, h * 0.80, w * 0.50, h * 0.88);
+    canvas.drawPath(rightHook, paint);
   }
 
   @override
-  bool shouldRepaint(covariant RizzLogoPainter old) => old.color != color;
+  bool shouldRepaint(covariant HookinLogoPainter old) =>
+      old.primaryColor != primaryColor || old.secondaryColor != secondaryColor;
 }
 
-class RizzLogo extends StatelessWidget {
+class HookinLogo extends StatelessWidget {
   final double size;
   final bool withName;
-  const RizzLogo({super.key, this.size = 32, this.withName = true});
+  const HookinLogo({super.key, this.size = 32, this.withName = true});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        CustomPaint(size: Size(size, size), painter: RizzLogoPainter(kBrand)),
+        CustomPaint(
+          size: Size(size, size),
+          painter: HookinLogoPainter(),
+        ),
         if (withName) ...[
-          const SizedBox(width: 6),
-          Text('rizz',
+          const SizedBox(width: 8),
+          RichText(
+            text: TextSpan(
               style: TextStyle(
-                  fontSize: size * 0.95,
-                  fontWeight: FontWeight.w700,
-                  color: kInk,
-                  letterSpacing: -0.5)),
+                fontSize: size * 0.88,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.8,
+              ),
+              children: const [
+                TextSpan(
+                  text: 'hook',
+                  style: TextStyle(color: kInk),
+                ),
+                TextSpan(
+                  text: 'in',
+                  style: TextStyle(color: kBrand),
+                ),
+              ],
+            ),
+          ),
         ],
       ],
     );
   }
 }
+
+typedef RizzLogo = HookinLogo;
+typedef RizzLogoPainter = HookinLogoPainter;
 
 // ------------------------------------------------------------------ images
 

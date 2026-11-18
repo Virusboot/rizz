@@ -162,7 +162,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       const Padding(
         padding: EdgeInsets.only(top: 6, bottom: 20),
         child: Text(
-            'Rizz is for adults only (18+). Others see your age, never your birthday.',
+            'Hookin is for adults only (18+). Others see your age, never your birthday.',
             style: TextStyle(color: kMuted, fontSize: 12)),
       ),
       const Text('I am', style: TextStyle(fontWeight: FontWeight.w700)),

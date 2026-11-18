@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
-const kBrand = Color(0xFFE8505B); // coral rose
-const kInk = Color(0xFF1A1A1A);
-const kMuted = Color(0xFF6B6B6B);
-const kSoft = Color(0xFFF2EFEE);
-const kBg = Color(0xFFFDFCFB);
-const kLine = Color(0xFFE6E2E0);
+const kBrand = Color(0xFFFF3366); // Electric Coral Rose
+const kBrandOrange = Color(0xFFFF6B4A); // Warm Sunset Peach
+const kInk = Color(0xFF14161D);
+const kMuted = Color(0xFF757A86);
+const kSoft = Color(0xFFF4F5F8);
+const kBg = Color(0xFFFFFFFF);
+const kLine = Color(0xFFE8EAEF);
 
 ThemeData buildTheme() {
   final scheme = ColorScheme.fromSeed(
