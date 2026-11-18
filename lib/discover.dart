@@ -355,7 +355,7 @@ class _SparksScreenState extends State<SparksScreen> {
         trailing: Chip(
           avatar: const Icon(Icons.auto_awesome, size: 16, color: kBrand),
           label: Text(me.canSpark ? 'Sparks (1)' : 'Sparks (0)'),
-          backgroundColor: const Color(0xFFFBE3E5),
+          backgroundColor: kBrandSoft,
           side: BorderSide.none,
           shape: const StadiumBorder(),
         ),

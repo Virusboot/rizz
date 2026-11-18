@@ -66,7 +66,7 @@ class Notifications {
     }
     final messenger = messengerKey.currentState;
     if (messenger == null) return;
-    final title = m.notification?.title ?? 'Rizz';
+    final title = m.notification?.title ?? 'Hookin';
     final body = m.notification?.body ?? '';
     messenger
       ..hideCurrentSnackBar()

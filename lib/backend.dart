@@ -139,7 +139,7 @@ class Backend {
     required List<String> photos,
   }) async {
     final age = ageFrom(dob);
-    if (age < 18) throw Exception('You must be 18 or older to use Rizz.');
+    if (age < 18) throw Exception('You must be 18 or older to use Hookin.');
     final safePhotos = photos.isNotEmpty
         ? photos
         : [
@@ -559,7 +559,7 @@ class Backend {
     final people = await Future.wait<AppUser?>(ids.map(_safeUser));
     final out = <BlockedUser>[];
     for (var i = 0; i < ids.length; i++) {
-      out.add(BlockedUser(ids[i], people[i]?.name ?? 'Rizz member'));
+      out.add(BlockedUser(ids[i], people[i]?.name ?? 'Hookin member'));
     }
     return out;
   }

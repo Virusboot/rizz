@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-const kBrand = Color(0xFFFF3366); // Electric Coral Rose
-const kBrandOrange = Color(0xFFFF6B4A); // Warm Sunset Peach
+const kBrand = Color(0xFFFD3C87); // Hot Pink matching Hookin logo
+const kBrandOrange = Color(0xFFFF5E97); // Radiant Rose companion
+const kBrandSoft = Color(0xFFFFEFF5); // Soft Pink Tint
 const kInk = Color(0xFF14161D);
 const kMuted = Color(0xFF757A86);
 const kSoft = Color(0xFFF4F5F8);

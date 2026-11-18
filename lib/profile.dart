@@ -658,7 +658,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
         ),
         const SizedBox(height: 12),
         const Text(
-          'Your intent (Dating, Casual or Open to both) also decides who you see. Change it in My Rizz.',
+          'Your intent (Dating, Casual or Open to both) also decides who you see. Change it in My Hookin.',
           style: TextStyle(color: kMuted, fontSize: 13),
         ),
       ]),

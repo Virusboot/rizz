@@ -95,71 +95,33 @@ class HookinLogoPainter extends CustomPainter {
 class HookinLogo extends StatelessWidget {
   final double size;
   final bool withName;
+  final bool dark;
   final List<Color>? gradientColors;
 
   const HookinLogo({
     super.key,
     this.size = 32,
     this.withName = true,
+    this.dark = true,
     this.gradientColors,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = gradientColors ?? const [kBrand, kBrandOrange];
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: colors,
-            ),
-            borderRadius: BorderRadius.circular(size * 0.28),
-            boxShadow: [
-              BoxShadow(
-                color: colors.first.withOpacity(0.32),
-                blurRadius: size * 0.25,
-                offset: Offset(0, size * 0.1),
-              ),
-            ],
-          ),
-          padding: EdgeInsets.all(size * 0.18),
-          child: CustomPaint(
-            painter: HookinLogoPainter(
-              primaryColor: Colors.white,
-              secondaryColor: Colors.white,
-            ),
-          ),
-        ),
-        if (withName) ...[
-          const SizedBox(width: 10),
-          RichText(
-            text: TextSpan(
-              style: TextStyle(
-                fontSize: size * 0.88,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.8,
-              ),
-              children: [
-                const TextSpan(
-                  text: 'hook',
-                  style: TextStyle(color: kInk),
-                ),
-                TextSpan(
-                  text: 'in',
-                  style: TextStyle(color: colors.first),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
+    if (withName) {
+      return Image.asset(
+        dark
+            ? 'assets/images/hookin_logo_dark.png'
+            : 'assets/images/hookin_logo.png',
+        height: size,
+        fit: BoxFit.contain,
+      );
+    }
+    return Image.asset(
+      'assets/images/hookin_icon.png',
+      height: size,
+      width: size,
+      fit: BoxFit.contain,
     );
   }
 }
