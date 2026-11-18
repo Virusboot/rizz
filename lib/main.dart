@@ -38,7 +38,46 @@ class RizzApp extends StatelessWidget {
       theme: buildTheme(),
       home: initError != null
           ? SetupNeededScreen(error: initError!)
-          : const AuthGate(),
+          : const SplashScreen(),
+    );
+  }
+}
+
+/// Screen 1: Splash screen showing only the logo
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  Future<void> _startTimer() async {
+    await Future.delayed(const Duration(milliseconds: 2000));
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder<void>(
+        pageBuilder: (_, __, ___) => const AuthGate(),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 400),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: kBg,
+      body: Center(
+        child: RizzLogo(size: 64),
+      ),
     );
   }
 }
@@ -48,7 +87,10 @@ class Splash extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: RizzLogo(size: 48)));
+    return const Scaffold(
+      backgroundColor: kBg,
+      body: Center(child: RizzLogo(size: 64)),
+    );
   }
 }
 

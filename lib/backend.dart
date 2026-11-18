@@ -57,8 +57,13 @@ class Backend {
           return 'Too many attempts. Please wait a bit and try again.';
         case 'network-request-failed':
           return 'No internet connection.';
+        case 'operation-not-allowed':
+          return 'Email/Password sign-in is not enabled in Firebase Console.';
         case 'requires-recent-login':
           return 'Please sign in again and retry.';
+      }
+      if (e.message != null && e.message!.contains('CONFIGURATION_NOT_FOUND')) {
+        return 'Email/Password sign-in is not turned on in Firebase Console. Enable it in Authentication > Sign-in method.';
       }
       return e.message ?? 'Something went wrong.';
     }
