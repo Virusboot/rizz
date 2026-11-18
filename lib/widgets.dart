@@ -95,20 +95,50 @@ class HookinLogoPainter extends CustomPainter {
 class HookinLogo extends StatelessWidget {
   final double size;
   final bool withName;
-  const HookinLogo({super.key, this.size = 32, this.withName = true});
+  final List<Color>? gradientColors;
+
+  const HookinLogo({
+    super.key,
+    this.size = 32,
+    this.withName = true,
+    this.gradientColors,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final colors = gradientColors ?? const [kBrand, kBrandOrange];
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        CustomPaint(
-          size: Size(size, size),
-          painter: HookinLogoPainter(),
+        Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: colors,
+            ),
+            borderRadius: BorderRadius.circular(size * 0.28),
+            boxShadow: [
+              BoxShadow(
+                color: colors.first.withOpacity(0.32),
+                blurRadius: size * 0.25,
+                offset: Offset(0, size * 0.1),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.all(size * 0.18),
+          child: CustomPaint(
+            painter: HookinLogoPainter(
+              primaryColor: Colors.white,
+              secondaryColor: Colors.white,
+            ),
+          ),
         ),
         if (withName) ...[
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           RichText(
             text: TextSpan(
               style: TextStyle(
@@ -116,14 +146,14 @@ class HookinLogo extends StatelessWidget {
                 fontWeight: FontWeight.w900,
                 letterSpacing: -0.8,
               ),
-              children: const [
-                TextSpan(
+              children: [
+                const TextSpan(
                   text: 'hook',
                   style: TextStyle(color: kInk),
                 ),
                 TextSpan(
                   text: 'in',
-                  style: TextStyle(color: kBrand),
+                  style: TextStyle(color: colors.first),
                 ),
               ],
             ),
