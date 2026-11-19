@@ -34,7 +34,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '837305453018',
     projectId: 'rizz-4d335',
     storageBucket: 'rizz-4d335.firebasestorage.app',
-    iosBundleId: 'com.kvstudio.rizz',
+    iosBundleId: 'com.kvstudio.hookin',
   );
 
   static const FirebaseOptions web = FirebaseOptions(

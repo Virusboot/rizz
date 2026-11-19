@@ -2,6 +2,7 @@
 
 ## 1. App Details
 - **App Name**: Hookin - Dating & Real Connections (or Hookin)
+- **Package Name**: com.kvstudio.hookin
 - **Short Description** (Max 80 characters):
   Meet real people, match, and find genuine dating connections on Hookin.
 - **Category**: Dating / Social
@@ -52,3 +53,4 @@ Download **Hookin** today and find your next real connection!
   `BF:CA:08:DF:20:37:6F:69:BB:A2:0F:A1:8F:76:9E:E7:AA:1A:21:0E`
 - **SHA-256 Fingerprint**:
   `30:A5:3A:70:4B:B8:75:6A:52:3C:0F:AE:1B:41:B9:18:F1:34:29:69:72:85:3B:D1:59:9C:C5:C7:F7:D1:65:6F`
+

@@ -1,4 +1,4 @@
-package com.kvstudio.rizz
+package com.kvstudio.hookin
 
 import io.flutter.embedding.android.FlutterActivity
 
