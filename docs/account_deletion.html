@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delete Account & Data - Hookin</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #1e232c;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    h1 {
+      color: #FD3C87;
+      margin-top: 0;
+    }
+    .card {
+      background: #fff5f8;
+      border-left: 4px solid #FD3C87;
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    input, textarea, button {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 16px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+    button {
+      background-color: #FD3C87;
+      color: #ffffff;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .notice {
+      font-size: 13px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Delete Your Hookin Account & Data</h1>
+    <p>In accordance with Google Play's User Data & Account Deletion policy, you have the right to request the permanent deletion of your Hookin account and all associated personal data.</p>
+
+    <div class="card">
+      <strong>Option 1: In-App Immediate Deletion (Fastest)</strong>
+      <p style="margin: 6px 0 0 0;">Open Hookin &gt; Go to <strong>Profile</strong> &gt; Select <strong>Safety</strong> tab &gt; Tap <strong>Delete account</strong> &gt; Confirm password. Your profile, photos, matches, and chats are instantly and irreversibly deleted.</p>
+    </div>
+
+    <div class="card" style="background: #f9fafb; border-color: #6b7280;">
+      <strong>Option 2: Web Deletion Request</strong>
+      <p style="margin: 6px 0 0 0;">If you have uninstalled the app or cannot log in, submit your deletion request below. Our team will verify and purge all your data within 7 business days.</p>
+      
+      <form onsubmit="alert('Your deletion request has been submitted. Our team will process it and send confirmation to your registered email.'); return false;">
+        <label for="email"><strong>Registered Hookin Email:</strong></label>
+        <input type="email" id="email" required placeholder="you@example.com">
+
+        <label for="reason"><strong>Reason (Optional):</strong></label>
+        <textarea id="reason" rows="3" placeholder="Tell us why you are deleting (optional)"></textarea>
+
+        <button type="submit">Submit Deletion Request</button>
+      </form>
+    </div>
+
+    <h2>What data is deleted?</h2>
+    <ul>
+      <li>Personal profile (Name, age, bio, dating intentions).</li>
+      <li>All uploaded photos and profile images stored in our media servers.</li>
+      <li>Mutual matches, chat messages, and interaction logs.</li>
+      <li>Authentication credentials and push notification tokens.</li>
+    </ul>
+
+    <p class="notice">Questions? Contact support at <strong>support@kvstudio.com</strong></p>
+  </div>
+</body>
+</html>
+
