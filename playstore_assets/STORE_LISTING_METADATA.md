@@ -3,6 +3,9 @@
 ## 1. App Details
 - **App Name**: Hookin - Dating & Real Connections (or Hookin)
 - **Package Name**: com.kvstudio.hookin
+- **Repository**: https://github.com/Virusboot/hookin
+- **Privacy Policy URL**: https://virusboot.github.io/hookin/
+- **Account Deletion URL**: https://virusboot.github.io/hookin/account_deletion.html
 - **Short Description** (Max 80 characters):
   Meet real people, match, and find genuine dating connections on Hookin.
 - **Category**: Dating / Social

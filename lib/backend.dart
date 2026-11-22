@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'models.dart';
+import 'demo_data.dart';
 
 /// All Firebase calls live here so the UI stays simple.
 class Backend {
@@ -363,10 +364,24 @@ class Backend {
       cursor = snap.docs.last;
     }
     scored.sort((a, b) => b.value.compareTo(a.value));
-    return scored.map((e) => e.key).toList();
+    final result = scored.map((e) => e.key).toList();
+    final demoCandidates = kDemoProfiles.where((u) {
+      if (exclude.contains(u.uid)) return false;
+      if (!wants(me.interestedIn, u.gender)) return false;
+      if (u.age < me.ageMin || u.age > me.ageMax) return false;
+      return true;
+    }).toList();
+    return [...result, ...demoCandidates];
   }
 
   static Future<AppUser?> _safeUser(String id) async {
+    if (id.startsWith('demo_')) {
+      try {
+        return kDemoProfiles.firstWhere((u) => u.uid == id);
+      } catch (_) {
+        return null;
+      }
+    }
     try {
       final d = await userRef(id).get();
       if (!d.exists) return null;
@@ -447,7 +462,8 @@ class Backend {
       if (spark) {
         tx.update(userRef(myId), {'lastSparkAt': FieldValue.serverTimestamp()});
       }
-      if (!theirs.exists) return null;
+      final isDemo = other.uid.startsWith('demo_');
+      if (!theirs.exists && !isDemo) return null;
       final id = matchIdFor(myId, other.uid);
       tx.set(matches.doc(id), {
         'users': [myId, other.uid],
@@ -456,10 +472,17 @@ class Backend {
           other.uid: {'name': other.name, 'photo': other.mainPhoto ?? ''},
         },
         'createdAt': FieldValue.serverTimestamp(),
-        'lastMessage': '',
-        'lastSender': '',
+        'lastMessage': isDemo ? 'Hey! Nice to connect with you! 😊' : '',
+        'lastSender': isDemo ? other.uid : '',
         'lastMessageAt': FieldValue.serverTimestamp(),
       });
+      if (isDemo) {
+        tx.set(matches.doc(id).collection('messages').doc(), {
+          'sender': other.uid,
+          'text': 'Hey! Nice to connect with you! How is your day going? 😊',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
       return id;
     });
   }
