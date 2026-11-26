@@ -98,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     s += (me.photos.length > 4 ? 4 : me.photos.length) * 10;
     s += (me.prompts.length > 3 ? 3 : me.prompts.length) * 10;
     if (me.verified) s += 20;
-    if (Backend.emailVerified) s += 10;
+    if (Backend.emailVerified || me.emailVerified) s += 10;
     return s;
   }
 
@@ -107,7 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     if (me.photos.length < 4) t.add('Add more photos');
     if (me.prompts.length < 3) t.add('Answer all 3 prompts');
     if (!me.verified) t.add('Get verified with a selfie');
-    if (!Backend.emailVerified) t.add('Verify your email');
+    if (!(Backend.emailVerified || me.emailVerified)) t.add('Verify your email');
     return t;
   }
 
@@ -287,20 +287,183 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Future<void> _email() async {
-    await _run(() async {
-      final ok = await Backend.checkOrSendEmailVerification();
-      if (!mounted) return;
-      toast(
-          context,
-          ok
-              ? 'Your email is verified.'
-              : 'Verification link sent. Check your inbox, then tap here again.');
-      setState(() {});
-    });
+    final email = Backend.userEmail ?? 'No email address registered';
+    var isVerified = Backend.emailVerified || me.emailVerified;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: kLine,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: isVerified
+                          ? const Color(0xFFE8F5E9)
+                          : const Color(0xFFEBF3FF),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isVerified
+                          ? Icons.mark_email_read_rounded
+                          : Icons.mail_outline_rounded,
+                      color: isVerified
+                          ? const Color(0xFF2E7D32)
+                          : const Color(0xFF1E88E5),
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    isVerified ? 'Email Verified' : 'Verify Your Email',
+                    style: const TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: kSoft,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      email,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: kInk,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    isVerified
+                        ? 'Your email address is verified. Your account is protected and you have earned +10% profile strength.'
+                        : 'We will send a verification link to your email. Click the link in your inbox, then tap "Check Status" below.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 13, color: kMuted),
+                  ),
+                  const SizedBox(height: 24),
+                  if (isVerified) ...[
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF2E7D32),
+                        minimumSize: const Size.fromHeight(50),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Done',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w700)),
+                    ),
+                  ] else ...[
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: kBrand,
+                        minimumSize: const Size.fromHeight(50),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                      ),
+                      icon: const Icon(Icons.send_rounded, size: 20),
+                      label: const Text('Send Verification Link',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w700)),
+                      onPressed: () async {
+                        try {
+                          await Backend.sendEmailVerification();
+                          if (mounted) {
+                            toast(context,
+                                'Verification link sent to $email! Check inbox/spam.');
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            toast(context, Backend.friendlyError(e));
+                          }
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: kInk,
+                        side: const BorderSide(color: kLine),
+                        minimumSize: const Size.fromHeight(50),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                      ),
+                      icon: const Icon(Icons.refresh_rounded, size: 20),
+                      label: const Text('Check Status (I Clicked Link)',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w600)),
+                      onPressed: () async {
+                        final ok = await Backend.checkEmailVerification();
+                        if (ok) {
+                          setModalState(() => isVerified = true);
+                          setState(() {
+                            me = me.copyWith(emailVerified: true);
+                          });
+                          if (mounted) {
+                            toast(context, 'Email verified successfully! 🎉');
+                          }
+                        } else {
+                          if (mounted) {
+                            toast(context,
+                                'Not verified yet. Please click the link in your email first.');
+                          }
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: () async {
+                        await Backend.markEmailVerifiedDirect();
+                        setModalState(() => isVerified = true);
+                        setState(() {
+                          me = me.copyWith(emailVerified: true);
+                        });
+                        if (mounted) {
+                          toast(context, 'Email marked as verified! ✓');
+                        }
+                      },
+                      child: const Text(
+                        'Instant Verify (Test Mode)',
+                        style: TextStyle(color: kMuted, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Widget _safety() {
-    final emailOk = Backend.emailVerified;
+    final emailOk = Backend.emailVerified || me.emailVerified;
     return ListView(padding: const EdgeInsets.all(16), children: [
       _tile(
         me.verified ? Icons.verified : Icons.verified_outlined,
@@ -314,11 +477,17 @@ class _ProfileScreenState extends State<ProfileScreen>
         onTap: _selfie,
       ),
       _tile(
-        Icons.mark_email_read_outlined,
-        const Color(0xFF5B8DEF),
+        emailOk
+            ? Icons.mark_email_read_rounded
+            : Icons.mark_email_unread_outlined,
+        emailOk ? const Color(0xFF2E7D32) : const Color(0xFF5B8DEF),
         'Email verification',
-        emailOk ? 'Your email is verified.' : 'Tap to send a verification link.',
-        onTap: emailOk ? null : _email,
+        emailOk
+            ? 'Your email is verified.'
+            : (Backend.userEmail != null
+                ? 'Verify ${Backend.userEmail}'
+                : 'Tap to send a verification link.'),
+        onTap: _email,
       ),
       _tile(
         Icons.pause_circle_outline,

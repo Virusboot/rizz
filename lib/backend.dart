@@ -108,18 +108,63 @@ class Backend {
     await auth.signOut();
   }
 
+  /// Current user's email address
+  static String? get userEmail => auth.currentUser?.email;
+
+  static bool get emailVerified => auth.currentUser?.emailVerified ?? false;
+
+  /// Sends email verification link with rate limit handling
+  static Future<void> sendEmailVerification() async {
+    final user = auth.currentUser;
+    if (user == null) throw Exception('No user logged in.');
+    try {
+      await user.sendEmailVerification();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'too-many-requests') {
+        throw Exception(
+            'Verification link already sent recently. Please check your inbox or spam folder.');
+      }
+      rethrow;
+    }
+  }
+
+  /// Reloads user from Firebase Auth and returns whether email is verified
+  static Future<bool> checkEmailVerification() async {
+    final user = auth.currentUser;
+    if (user == null) return false;
+    await user.reload();
+    final fresh = auth.currentUser;
+    final ok = fresh?.emailVerified ?? false;
+    if (ok) {
+      try {
+        await userRef(uid).update({'emailVerified': true});
+      } catch (_) {}
+    }
+    return ok;
+  }
+
+  /// Directly marks email as verified in Firestore
+  static Future<void> markEmailVerifiedDirect() async {
+    try {
+      await userRef(uid).update({'emailVerified': true});
+    } catch (_) {}
+  }
+
   /// Returns true if the email is verified, otherwise re-sends the link.
   static Future<bool> checkOrSendEmailVerification() async {
     final user = auth.currentUser;
     if (user == null) return false;
     await user.reload();
     final fresh = auth.currentUser;
-    if (fresh != null && fresh.emailVerified) return true;
+    if (fresh != null && fresh.emailVerified) {
+      try {
+        await userRef(uid).update({'emailVerified': true});
+      } catch (_) {}
+      return true;
+    }
     await fresh?.sendEmailVerification();
     return false;
   }
-
-  static bool get emailVerified => auth.currentUser?.emailVerified ?? false;
 
   // --------------------------------------------------------------- profile
 

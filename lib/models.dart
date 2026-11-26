@@ -106,6 +106,7 @@ class AppUser {
   final List<String> photos;
   final bool verified;
   final bool verifyPending;
+  final bool emailVerified;
   final bool paused;
   final bool notify;
   final bool onboarded;
@@ -130,6 +131,7 @@ class AppUser {
     required this.photos,
     required this.verified,
     required this.verifyPending,
+    this.emailVerified = false,
     required this.paused,
     required this.notify,
     required this.onboarded,
@@ -160,6 +162,7 @@ class AppUser {
       photos: List<String>.from((m['photos'] ?? <dynamic>[]) as List),
       verified: (m['verified'] ?? false) as bool,
       verifyPending: (m['verifyPending'] ?? false) as bool,
+      emailVerified: (m['emailVerified'] ?? false) as bool,
       paused: (m['paused'] ?? false) as bool,
       notify: (m['notify'] ?? true) as bool,
       onboarded: (m['onboarded'] ?? false) as bool,
@@ -218,6 +221,7 @@ class AppUser {
     List<String>? photos,
     bool? verified,
     bool? verifyPending,
+    bool? emailVerified,
     bool? paused,
     bool? notify,
     bool? onboarded,
@@ -242,6 +246,7 @@ class AppUser {
       photos: photos ?? this.photos,
       verified: verified ?? this.verified,
       verifyPending: verifyPending ?? this.verifyPending,
+      emailVerified: emailVerified ?? this.emailVerified,
       paused: paused ?? this.paused,
       notify: notify ?? this.notify,
       onboarded: onboarded ?? this.onboarded,
