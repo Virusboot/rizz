@@ -447,7 +447,7 @@ class Backend {
   }
 
   /// People who liked me and I have not answered yet.
-  static Future<List<LikeItem>> likesReceived() async {
+  static Future<List<LikeItem>> likesReceived([AppUser? me]) async {
     final snap = await likes.where('to', isEqualTo: uid).get();
     final sets = await Future.wait<Set<String>>(
         [_blockedIds(), _likedIds(), _passedIds()]);
@@ -476,6 +476,30 @@ class Backend {
       out.add(LikeItem(u, (m['spark'] ?? false) as bool,
           (m['createdAt'] as Timestamp?)?.toDate()));
     }
+
+    // If fewer than 3 real likes, provide demo likes matching the user's preferences
+    if (out.length < 3) {
+      final myUser = me ?? await getMe();
+      final showGender = myUser?.interestedIn;
+      final candidates = kDemoProfiles.where((d) {
+        if (exclude.contains(d.uid)) return false;
+        if (showGender != null && !wants(showGender, d.gender)) return false;
+        return true;
+      }).toList();
+
+      for (var i = 0; i < candidates.length && out.length < 3; i++) {
+        final d = candidates[i];
+        if (out.any((item) => item.user.uid == d.uid)) continue;
+        // Mark the first demo like with spark: true for an exciting VIP demo experience!
+        final isSpark = out.isEmpty && i == 0;
+        out.add(LikeItem(
+          d,
+          isSpark,
+          DateTime.now().subtract(Duration(hours: (i + 1) * 2 + 1)),
+        ));
+      }
+    }
+
     return out;
   }
 
@@ -610,7 +634,42 @@ class Backend {
         .map((s) => s.docs.map(ChatMsg.fromDoc).toList());
   }
 
-  static Future<void> sendMessage(String matchId, String text) async {
+  static final List<String> _demoReplies = [
+    "Hey! So good to connect with you! 😊 How's your day going?",
+    "Haha I love that! What are your favorite things to do on weekends?",
+    "Totally agree with you! By the way, coffee or tea? ☕",
+    "That sounds amazing! Tell me, what's your go-to weekend vibe?",
+    "Haha you seem really fun to chat with! What kind of music or movies do you like?",
+    "I was actually just thinking about that! Great minds think alike ✨",
+    "Such a good vibe! We should definitely share our favorite food spots sometime 🍕",
+  ];
+
+  static void _scheduleDemoReply(
+      String matchId, String demoId, String userMessage) {
+    Future.delayed(const Duration(milliseconds: 1600), () async {
+      try {
+        final rnd = Random();
+        final replyText = _demoReplies[rnd.nextInt(_demoReplies.length)];
+        final mRef = matches.doc(matchId);
+        final batch = db.batch();
+        batch.set(mRef.collection('messages').doc(), {
+          'sender': demoId,
+          'text': replyText,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        batch.update(mRef, {
+          'lastMessage':
+              replyText.length > 80 ? replyText.substring(0, 80) : replyText,
+          'lastSender': demoId,
+          'lastMessageAt': FieldValue.serverTimestamp(),
+        });
+        await batch.commit();
+      } catch (_) {}
+    });
+  }
+
+  static Future<void> sendMessage(String matchId, String text,
+      {String? otherId}) async {
     final t = text.trim();
     if (t.isEmpty) return;
     if (t.length > 1000) throw Exception('Message is too long.');
@@ -627,6 +686,10 @@ class Backend {
       'lastMessageAt': FieldValue.serverTimestamp(),
     });
     await batch.commit();
+
+    if (otherId != null && otherId.startsWith('demo_')) {
+      _scheduleDemoReply(matchId, otherId, t);
+    }
   }
 
   static Future<void> _deleteRefs(List<DocumentReference<Json>> refs,
