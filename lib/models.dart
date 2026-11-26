@@ -206,6 +206,55 @@ class AppUser {
     final left = 24 - DateTime.now().difference(t).inHours;
     return left < 0 ? 0 : left;
   }
+
+  AppUser copyWith({
+    String? name,
+    int? age,
+    String? gender,
+    String? interestedIn,
+    LookingFor? intent,
+    String? city,
+    List<Prompt>? prompts,
+    List<String>? photos,
+    bool? verified,
+    bool? verifyPending,
+    bool? paused,
+    bool? notify,
+    bool? onboarded,
+    int? ageMin,
+    int? ageMax,
+    bool? sameCity,
+    DateTime? createdAt,
+    DateTime? lastActive,
+    DateTime? lastSparkAt,
+    DateTime? boostUntil,
+    DateTime? lastBoostAt,
+  }) {
+    return AppUser(
+      uid: uid,
+      name: name ?? this.name,
+      age: age ?? this.age,
+      gender: gender ?? this.gender,
+      interestedIn: interestedIn ?? this.interestedIn,
+      intent: intent ?? this.intent,
+      city: city ?? this.city,
+      prompts: prompts ?? this.prompts,
+      photos: photos ?? this.photos,
+      verified: verified ?? this.verified,
+      verifyPending: verifyPending ?? this.verifyPending,
+      paused: paused ?? this.paused,
+      notify: notify ?? this.notify,
+      onboarded: onboarded ?? this.onboarded,
+      ageMin: ageMin ?? this.ageMin,
+      ageMax: ageMax ?? this.ageMax,
+      sameCity: sameCity ?? this.sameCity,
+      createdAt: createdAt ?? this.createdAt,
+      lastActive: lastActive ?? this.lastActive,
+      lastSparkAt: lastSparkAt ?? this.lastSparkAt,
+      boostUntil: boostUntil ?? this.boostUntil,
+      lastBoostAt: lastBoostAt ?? this.lastBoostAt,
+    );
+  }
 }
 
 class ChatMsg {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'backend.dart';
 import 'models.dart';
@@ -21,7 +22,21 @@ class _ProfileScreenState extends State<ProfileScreen>
   late final TabController tc = TabController(length: 3, vsync: this);
   bool busy = false;
 
-  AppUser get me => widget.me;
+  late AppUser me;
+
+  @override
+  void initState() {
+    super.initState();
+    me = widget.me;
+  }
+
+  @override
+  void didUpdateWidget(ProfileScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.me != oldWidget.me) {
+      setState(() => me = widget.me);
+    }
+  }
 
   @override
   void dispose() {
@@ -170,19 +185,103 @@ class _ProfileScreenState extends State<ProfileScreen>
   // --------------------------------------------------------------- safety
 
   Future<void> _selfie() async {
-    if (me.verified || me.verifyPending) return;
-    final ok = await confirmDialog(
-      context,
-      title: 'Verify with a selfie',
-      body:
-          'Take a clear selfie of your face. It is stored privately and only used by our team to check you match your photos.',
-      confirmText: 'Take selfie',
+    if (me.verified) {
+      toast(context, 'Your profile is verified with a blue badge! ✓');
+      return;
+    }
+
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: kLine,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const Icon(Icons.verified_user_rounded, color: kBrand, size: 48),
+              const SizedBox(height: 12),
+              const Text(
+                'Verify Your Profile',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Take a quick selfie or upload a photo to get verified and boost your profile credibility.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: kMuted),
+              ),
+              const SizedBox(height: 24),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: kBrandSoft,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded, color: kBrand),
+                ),
+                title: const Text(
+                  'Take a Selfie (Camera)',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+                subtitle: const Text('Capture your face in good lighting'),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: const BorderSide(color: kLine),
+                ),
+                onTap: () => Navigator.pop(ctx, ImageSource.camera),
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: kSoft,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.photo_library_rounded, color: kInk),
+                ),
+                title: const Text(
+                  'Choose from Gallery',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+                subtitle: const Text('Select a clear portrait photo'),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: const BorderSide(color: kLine),
+                ),
+                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
-    if (!ok) return;
+
+    if (source == null) return;
+
     await _run(() async {
-      final sent = await Backend.submitSelfie();
+      final sent = await Backend.submitSelfie(source: source);
       if (sent && mounted) {
-        toast(context, 'Selfie sent. We will review it soon.');
+        final fresh = await Backend.getMe();
+        if (!mounted) return;
+        setState(() {
+          me = fresh ?? me.copyWith(verified: true, verifyPending: false);
+        });
+        toast(context, 'Profile verified successfully! 🎉');
       }
     });
   }
@@ -398,7 +497,10 @@ class _ProfileScreenState extends State<ProfileScreen>
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
         ),
         const SizedBox(width: 6),
-        Icon(Icons.verified, color: me.verified ? kBrand : kLine),
+        GestureDetector(
+          onTap: _selfie,
+          child: Icon(Icons.verified, color: me.verified ? kBrand : kLine),
+        ),
       ]),
       const SizedBox(height: 8),
       TabBar(

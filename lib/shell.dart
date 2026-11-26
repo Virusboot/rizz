@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -20,14 +23,25 @@ class Shell extends StatefulWidget {
 class _ShellState extends State<Shell> {
   final PoolController pool = PoolController();
   int tab = 0;
+  late AppUser currentMe = widget.me;
+  StreamSubscription<DocumentSnapshot<Json>>? _userSub;
 
   @override
   void initState() {
     super.initState();
+    currentMe = widget.me;
     pool.load(widget.me);
     Backend.onAppOpen(widget.me);
     Notifications.requestedTab.addListener(_onTabRequest);
     Notifications.start();
+
+    _userSub = Backend.userRef(widget.me.uid).snapshots().listen((snap) {
+      if (snap.exists && mounted) {
+        setState(() {
+          currentMe = AppUser.fromDoc(snap);
+        });
+      }
+    });
   }
 
   void _onTabRequest() {
@@ -39,6 +53,7 @@ class _ShellState extends State<Shell> {
 
   @override
   void dispose() {
+    _userSub?.cancel();
     Notifications.requestedTab.removeListener(_onTabRequest);
     pool.dispose();
     super.dispose();
@@ -47,15 +62,15 @@ class _ShellState extends State<Shell> {
   Widget _page() {
     switch (tab) {
       case 0:
-        return DiscoverScreen(me: widget.me, pool: pool);
+        return DiscoverScreen(me: currentMe, pool: pool);
       case 1:
-        return SparksScreen(me: widget.me, pool: pool);
+        return SparksScreen(me: currentMe, pool: pool);
       case 2:
-        return LikesScreen(me: widget.me, pool: pool);
+        return LikesScreen(me: currentMe, pool: pool);
       case 3:
-        return MatchesScreen(me: widget.me);
+        return MatchesScreen(me: currentMe);
       default:
-        return ProfileScreen(me: widget.me, pool: pool);
+        return ProfileScreen(me: currentMe, pool: pool);
     }
   }
 
