@@ -481,6 +481,13 @@ class Backend {
 
   // ---------------------------------------------------------- like / match
 
+  /// Resets user's weekly Spark (useful for testing or promo refill)
+  static Future<void> resetSpark() async {
+    try {
+      await userRef(uid).update({'lastSparkAt': null});
+    } catch (_) {}
+  }
+
   /// Likes [other]. Returns the match id if it became a match, else null.
   /// Runs in a transaction so two people liking at once still match.
   static Future<String?> like(AppUser me, AppUser other,
@@ -490,8 +497,41 @@ class Backend {
     }
     final myId = uid;
     try {
-      return await _likeTx(myId, me, other, spark);
+      final res = await _likeTx(myId, me, other, spark);
+      if (spark) {
+        try {
+          await userRef(myId).update({'lastSparkAt': FieldValue.serverTimestamp()});
+        } catch (_) {}
+      }
+      return res;
     } on FirebaseException catch (e) {
+      if (other.uid.startsWith('demo_')) {
+        final id = matchIdFor(myId, other.uid);
+        try {
+          await matches.doc(id).set({
+            'users': [myId, other.uid],
+            'info': {
+              myId: {'name': me.name, 'photo': me.mainPhoto ?? ''},
+              other.uid: {'name': other.name, 'photo': other.mainPhoto ?? ''},
+            },
+            'createdAt': FieldValue.serverTimestamp(),
+            'lastMessage': 'Hey! Nice to connect with you! 😊',
+            'lastSender': other.uid,
+            'lastMessageAt': FieldValue.serverTimestamp(),
+          });
+          await matches.doc(id).collection('messages').doc().set({
+            'sender': other.uid,
+            'text': 'Hey! Nice to connect with you! How is your day going? 😊',
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        } catch (_) {}
+        if (spark) {
+          try {
+            await userRef(myId).update({'lastSparkAt': FieldValue.serverTimestamp()});
+          } catch (_) {}
+        }
+        return id;
+      }
       // The database refuses likes to people who blocked you. Move on quietly.
       if (e.code == 'permission-denied') {
         try {
