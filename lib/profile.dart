@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'backend.dart';
@@ -58,7 +59,36 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Future<void> _reloadPool() async {
     final fresh = await Backend.getMe();
-    if (fresh != null) widget.pool.load(fresh);
+    if (fresh != null) {
+      if (mounted) setState(() => me = fresh);
+      widget.pool.load(fresh);
+    }
+  }
+
+  Future<void> _openEditProfile() async {
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(builder: (_) => EditProfileScreen(me: me)),
+    );
+    final fresh = await Backend.getMe();
+    if (fresh != null && mounted) {
+      setState(() => me = fresh);
+      widget.pool.load(fresh);
+    }
+  }
+
+  Future<void> _openPreferences() async {
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => PreferencesScreen(me: me, pool: widget.pool),
+      ),
+    );
+    final fresh = await Backend.getMe();
+    if (fresh != null && mounted) {
+      setState(() => me = fresh);
+      widget.pool.load(fresh);
+    }
   }
 
   Widget _tile(
@@ -150,11 +180,46 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
           ),
           if (tips.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             for (final t in tips)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text('•  $t', style: const TextStyle(color: kMuted)),
+              InkWell(
+                onTap: () {
+                  if (t.contains('photos') || t.contains('prompts')) {
+                    _openEditProfile();
+                  } else if (t.contains('selfie')) {
+                    _selfie();
+                  } else if (t.contains('email')) {
+                    _email();
+                  }
+                },
+                borderRadius: BorderRadius.circular(10),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: kBrand.withOpacity(0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.add, color: kBrand, size: 14),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          t,
+                          style: const TextStyle(
+                            color: kInk,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right_rounded, color: kMuted, size: 18),
+                    ],
+                  ),
+                ),
               ),
           ],
         ]),
@@ -530,16 +595,51 @@ class _ProfileScreenState extends State<ProfileScreen>
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: kLine),
         ),
-        child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('India helplines',
-              style: TextStyle(fontWeight: FontWeight.w700)),
-          SizedBox(height: 8),
-          Text('Emergency: 112'),
-          Text('Women Helpline: 181'),
-          Text('Tele-MANAS mental health support: 14416'),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('India 24/7 Helplines',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+          const SizedBox(height: 12),
+          _helplineRow('Emergency Services', '112'),
+          const Divider(color: kLine, height: 16),
+          _helplineRow('Women Safety Helpline', '181'),
+          const Divider(color: kLine, height: 16),
+          _helplineRow('Tele-MANAS Mental Health', '14416'),
         ]),
       ),
     ]);
+  }
+
+  Widget _helplineRow(String title, String number) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              const SizedBox(height: 2),
+              Text(number, style: const TextStyle(color: kBrand, fontWeight: FontWeight.w700, fontSize: 13)),
+            ],
+          ),
+        ),
+        OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: kBrand,
+            side: BorderSide(color: kBrand.withOpacity(0.3)),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          icon: const Icon(Icons.copy_rounded, size: 14),
+          label: const Text('Copy', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+          onPressed: () {
+            Clipboard.setData(ClipboardData(text: number));
+            toast(context, 'Copied $number to clipboard');
+          },
+        ),
+      ],
+    );
   }
 
   // ------------------------------------------------------------- my rizz
@@ -583,10 +683,119 @@ class _ProfileScreenState extends State<ProfileScreen>
     try {
       await Backend.deleteAccount(pw);
     } catch (e) {
-      // This screen may already be gone, so use the app-level messenger.
       messenger
           .showSnackBar(SnackBar(content: Text(Backend.friendlyError(e))));
     }
+  }
+
+  Widget _infoRow(String label, String value, {bool copyable = false}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 105,
+          child: Text(label, style: const TextStyle(color: kMuted, fontSize: 13)),
+        ),
+        Expanded(
+          child: SelectableText(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+          ),
+        ),
+        if (copyable) ...[
+          const SizedBox(width: 6),
+          GestureDetector(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: value));
+              toast(context, 'Copied $label');
+            },
+            child: const Icon(Icons.copy_rounded, size: 16, color: kBrand),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _showAccountInfo() {
+    final email = Backend.userEmail ?? 'Not specified';
+    final created = me.createdAt != null
+        ? '${me.createdAt!.day}/${me.createdAt!.month}/${me.createdAt!.year}'
+        : 'Active';
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Account Details',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _infoRow('Email', email),
+            const SizedBox(height: 10),
+            _infoRow('Email Status',
+                (Backend.emailVerified || me.emailVerified) ? 'Verified ✓' : 'Unverified'),
+            const SizedBox(height: 10),
+            _infoRow('Profile Badge', me.verified ? 'Verified ✓' : 'Standard'),
+            const SizedBox(height: 10),
+            _infoRow('Member Since', created),
+            const SizedBox(height: 10),
+            _infoRow('Account ID', me.uid, copyable: true),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLegalDialog(String title, String url) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title,
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Official documentation and $title are published live:'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: kSoft,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: SelectableText(
+                url,
+                style: const TextStyle(
+                    color: kBrand, fontWeight: FontWeight.w600, fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: url));
+              toast(context, 'Link copied to clipboard');
+              Navigator.pop(ctx);
+            },
+            child: const Text('Copy Link'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: kBrand),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _myRizz() {
@@ -614,22 +823,14 @@ class _ProfileScreenState extends State<ProfileScreen>
         kInk,
         'Edit profile',
         'Photos, prompts, name and city',
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute<void>(builder: (_) => EditProfileScreen(me: me)),
-        ),
+        onTap: _openEditProfile,
       ),
       _tile(
         Icons.tune,
         kInk,
         'Dating preferences',
         'Who you want to see',
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute<void>(
-            builder: (_) => PreferencesScreen(me: me, pool: widget.pool),
-          ),
-        ),
+        onTap: _openPreferences,
       ),
       _tile(
         Icons.notifications_none,
@@ -641,37 +842,187 @@ class _ProfileScreenState extends State<ProfileScreen>
           onChanged: busy ? null : (v) => _run(() => Backend.setNotifications(v)),
         ),
       ),
-      _tile(Icons.logout, kMuted, 'Sign out', Backend.auth.currentUser?.email ?? '',
+      _tile(
+        Icons.account_circle_outlined,
+        const Color(0xFF4A6572),
+        'Account Details',
+        Backend.auth.currentUser?.email ?? 'View your account details',
+        onTap: _showAccountInfo,
+      ),
+      _tile(
+        Icons.privacy_tip_outlined,
+        const Color(0xFF34495E),
+        'Privacy Policy',
+        'How your data is protected',
+        onTap: () => _showLegalDialog(
+            'Privacy Policy', 'https://virusboot.github.io/rizz/privacy_policy.html'),
+      ),
+      _tile(
+        Icons.description_outlined,
+        const Color(0xFF5D6D7E),
+        'Terms of Service',
+        'User agreement and policies',
+        onTap: () => _showLegalDialog(
+            'Terms of Service', 'https://virusboot.github.io/rizz/terms_of_service.html'),
+      ),
+      _tile(
+        Icons.shield_outlined,
+        const Color(0xFF2C3E50),
+        'Child Safety Standards',
+        'Zero tolerance standards against CSAE',
+        onTap: () => _showLegalDialog(
+            'Child Safety Standards', 'https://virusboot.github.io/rizz/child_safety.html'),
+      ),
+      _tile(Icons.logout, kMuted, 'Sign out',
+          Backend.auth.currentUser?.email ?? '',
           onTap: _signOut),
       _tile(Icons.delete_outline, Colors.red, 'Delete account',
           'Permanently remove all your data',
           onTap: _deleteAccount),
+      const SizedBox(height: 12),
+      const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Center(
+          child: Text(
+            'HookIn v1.0.0 (Build 3)\nMade with ❤️ by KV Studio',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: kMuted, fontSize: 12, height: 1.5),
+          ),
+        ),
+      ),
     ]);
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      const SizedBox(height: 16),
-      Container(
-        padding: const EdgeInsets.all(4),
-        decoration: const BoxDecoration(color: kBrand, shape: BoxShape.circle),
-        child: Avatar(url: me.mainPhoto, radius: 56),
+      const SizedBox(height: 12),
+      // Avatar with edit button badge
+      Stack(
+        alignment: Alignment.bottomRight,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [kBrand, kBrandOrange],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: kBrand.withOpacity(0.25),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Avatar(url: me.mainPhoto, radius: 52),
+          ),
+          GestureDetector(
+            onTap: _openEditProfile,
+            child: Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: kLine, width: 2),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x1A000000),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.edit_rounded, size: 16, color: kBrand),
+            ),
+          ),
+        ],
       ),
       const SizedBox(height: 10),
-      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Flexible(
-          child: Text(me.name,
+      // Name, Age and Verification Badge
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Flexible(
+            child: Text(
+              '${me.name}, ${me.age}',
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+            ),
+          ),
+          const SizedBox(width: 6),
+          GestureDetector(
+            onTap: _selfie,
+            child: Tooltip(
+              message: me.verified ? 'Verified Profile' : 'Tap to verify',
+              child: Icon(
+                Icons.verified,
+                color: me.verified ? kBrand : kLine,
+                size: 24,
+              ),
+            ),
+          ),
+        ],
+      ),
+      if (me.city.isNotEmpty) ...[
+        const SizedBox(height: 2),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.location_on_outlined, size: 14, color: kMuted),
+            const SizedBox(width: 3),
+            Text(me.city,
+                style: const TextStyle(
+                    fontSize: 13, color: kMuted, fontWeight: FontWeight.w500)),
+          ],
         ),
-        const SizedBox(width: 6),
-        GestureDetector(
-          onTap: _selfie,
-          child: Icon(Icons.verified, color: me.verified ? kBrand : kLine),
+      ],
+      const SizedBox(height: 12),
+      // Action buttons: "Edit Profile" & "Preferences"
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: kInk,
+                  side: const BorderSide(color: kLine),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                ),
+                icon: const Icon(Icons.edit_outlined, size: 17),
+                label: const Text('Edit profile',
+                    style:
+                        TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                onPressed: _openEditProfile,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: kInk,
+                  side: const BorderSide(color: kLine),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                ),
+                icon: const Icon(Icons.tune_rounded, size: 17),
+                label: const Text('Preferences',
+                    style:
+                        TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                onPressed: _openPreferences,
+              ),
+            ),
+          ],
         ),
-      ]),
-      const SizedBox(height: 8),
+      ),
+      const SizedBox(height: 10),
       TabBar(
         controller: tc,
         labelColor: kBrand,
@@ -742,8 +1093,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => saving = true);
     try {
       await Backend.updateProfile(
-        name: name.text,
-        city: city.text,
+        name: name.text.trim(),
+        city: city.text.trim(),
         intent: intent,
         prompts: prompts,
         photos: photos,
@@ -753,8 +1104,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (!photos.contains(url)) await Backend.deletePhotoFile(url);
       }
       if (mounted) {
-        toast(context, 'Profile saved');
-        Navigator.pop(context);
+        toast(context, 'Profile saved successfully! ✨');
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) toast(context, Backend.friendlyError(e));
@@ -859,7 +1210,10 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       );
       final fresh = await Backend.getMe();
       if (fresh != null) widget.pool.load(fresh);
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        toast(context, 'Preferences updated! ✨');
+        Navigator.pop(context, true);
+      }
     } catch (e) {
       if (mounted) toast(context, Backend.friendlyError(e));
     }
